@@ -1,0 +1,20 @@
+# --- outputs (no versionar) ---
+inbox/
+outbox/
+
+# si quieres mantener las carpetas en git, añade un .gitkeep
+!inbox/.gitkeep
+!outbox/.gitkeep
+!outbox/processed/.gitkeep
+!outbox/digests/.gitkeep
+
+# --- backend build ---
+backend/target/
+backend/.idea/
+backend/.classpath
+backend/.project
+backend/.settings/
+
+# --- OS ---
+.DS_Store
+Thumbs.db

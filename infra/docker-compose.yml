@@ -1,0 +1,31 @@
+services:
+    postgres:
+      image: pgvector/pgvector:pg16
+      container_name: koh_postgres
+      environment:
+        POSTGRES_DB: koh
+        POSTGRES_USER: koh
+        POSTGRES_PASSWORD: koh
+      ports:
+        - "55432:5432"
+      volumes:
+        - pgdata:/var/lib/postgresql/data
+
+    n8n:
+      image: n8nio/n8n
+      container_name: koh_n8n
+      ports:
+        - "5678:5678"
+      environment:
+        - N8N_HOST=localhost
+        - N8N_PORT=5678
+        - N8N_PROTOCOL=http
+        - GENERIC_TIMEZONE=Europe/Madrid
+      volumes:
+        - n8n_data:/home/node/.n8n
+        - ../inbox:/files/inbox
+        - ../outbox:/files/outbox
+
+volumes:
+  pgdata:
+  n8n_data:

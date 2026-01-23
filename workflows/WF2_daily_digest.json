@@ -1,0 +1,165 @@
+{
+  "name": "WF2_daily_digest",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4f2d25d4-7414-4a0b-b03c-21884e6594ad",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8080/auth/login",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "demo@local.com"
+            },
+            {
+              "name": "password",
+              "value": "Password123"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "36e84716-b773-49cd-b80b-98eb20f30cce",
+      "name": "LOGIN"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8080/ask",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$node[\"LOGIN\"].json.token}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "question",
+              "value": "Genera un digest diario: 5 bullets con lo más importante de mis documentos indexados y 3 acciones recomendadas. Si no hay evidencia, di exactamente: No encuentro evidencia en tus documentos."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "a479dc36-a882-4b2c-9c40-495ec0a1fed6",
+      "name": "ASK"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8080/jobs/digest/save",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$node[\"LOGIN\"].json.token}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "=={{$node[\"ASK\"].json.answer}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "6b75767b-e052-4466-85ba-82198250c918",
+      "name": "SAVE_DIGEST"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "LOGIN",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LOGIN": {
+      "main": [
+        [
+          {
+            "node": "ASK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ASK": {
+      "main": [
+        [
+          {
+            "node": "SAVE_DIGEST",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "890d913f-13e2-4625-b4c0-524eb74dac89",
+  "meta": {
+    "instanceId": "5ddea6d611cd493c9fcc516decb79678bd77eed39857670c24bda8f820556c81"
+  },
+  "id": "XxyfHiB6kD4YrjCnpENBH",
+  "tags": []
+}

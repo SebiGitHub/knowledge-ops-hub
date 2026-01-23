@@ -1,0 +1,114 @@
+{
+  "name": "WF1_ingest_inbox",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2df52bd5-10ee-4095-b67c-7716ea13d7f6",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8080/auth/login",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "demo@local.com"
+            },
+            {
+              "name": "password",
+              "value": "Password123"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "f499bec7-4edf-4289-bffc-696a3c5665b1",
+      "name": "LOGIN"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8080/jobs/inbox/run?limit=1",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$node[\"LOGIN\"].json.token}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "7d6c1177-2c50-4e28-af84-beb1802ca4b0",
+      "name": "RUN_INBOX"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "LOGIN",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LOGIN": {
+      "main": [
+        [
+          {
+            "node": "RUN_INBOX",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "e10ad3f7-6c36-4d2b-9726-ef2108bc88e5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5ddea6d611cd493c9fcc516decb79678bd77eed39857670c24bda8f820556c81"
+  },
+  "id": "Mc1mv7_-ZL954McUR4pGq",
+  "tags": []
+}

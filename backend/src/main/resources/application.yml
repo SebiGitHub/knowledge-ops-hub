@@ -1,0 +1,31 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:55432/koh
+    username: koh
+    password: koh
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+app:
+  jwt:
+    secret: ${KOH_JWT_SECRET:change-me-in-env}
+    issuer: "knowledge-ops-hub"
+    accessTokenMinutes: 60
+  storage:
+    dir: ${KOH_STORAGE_DIR:./storage}
+  ollama:
+    baseUrl: ${KOH_OLLAMA_URL:http://localhost:11434}
+    embedModel: ${KOH_EMBED_MODEL:nomic-embed-text}
+    chatModel: ${KOH_CHAT_MODEL:mistral}
+  rag:
+    topK: ${KOH_TOPK:6}
+    maxDistance: ${KOH_MAX_DISTANCE:0.45}
+  files:
+    inboxDir: ${KOH_INBOX_DIR:../inbox}
+    outboxDir: ${KOH_OUTBOX_DIR:../outbox}
