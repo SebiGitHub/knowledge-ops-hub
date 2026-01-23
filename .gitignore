@@ -14,6 +14,7 @@ backend/.idea/
 backend/.classpath
 backend/.project
 backend/.settings/
+backend/storage/
 
 # --- OS ---
 .DS_Store
