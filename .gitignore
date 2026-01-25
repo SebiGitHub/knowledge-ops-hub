@@ -3,6 +3,8 @@ inbox/
 outbox/
 
 # si quieres mantener las carpetas en git, añade un .gitkeep
+inbox/
+outbox/
 !inbox/.gitkeep
 !outbox/.gitkeep
 !outbox/processed/.gitkeep
