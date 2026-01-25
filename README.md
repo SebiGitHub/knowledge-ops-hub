@@ -36,40 +36,40 @@ Cuando acumulas documentación (PDFs, guías, apuntes, specs), encontrar respues
                 PDFs
                  |
                  v
-        +----------------+
-        |inbox/ folder|
-        +----------------+
+        +---------------------------+
+        |       inbox/ folder       |
+        +---------------------------+
                  |
                  | (WF1: cada minuto / diario)
                  v
         +---------------------------+
-        |              n8n              |
-        |       WF1 / WF2       |
+        |            n8n            |
+        |         WF1 / WF2         |
         +---------------------------+
                  |
                  | HTTP (calls)
                  v
         +---------------------------+
-        |    Spring Boot API   |
-        |  Auth / Docs / RAG  |
+        |      Spring Boot API      |
+        |     Auth / Docs / RAG     |
         +---------------------------+
                  |
                  | JPA / JDBC
                  v
-        +-------------------------------+
-        |   Postgres + pgvector  |
-        |   tables:                         |
-        |   - documents               |
-        |   - document_pages    |
-        |   - chunks (vector)        |
-        +-------------------------------+
+        +--------------------------+
+        |   Postgres + pgvector    |
+        |   tables:                |
+        |   - documents            |
+        |   - document_pages       |
+        |   - chunks (vector)      |
+        +--------------------------+
                  |
                  | embeddings / generate
                  v
-        +---------------------------+
-        |          Ollama            |
-        |        local LLM          |
-        +---------------------------+
+        +--------------------------+
+        |          Ollama          |
+        |        local LLM         |
+        +--------------------------+
 
 
 Outputs:
@@ -83,7 +83,10 @@ Outputs:
 - Windows + Docker Desktop
 - Java 17+
 - Maven
-- (Opcional) Postman / Swagger
+- Ollama (modelo local)
+- n8n (self-hosted)
+- Postman (o Swagger como alternativa)
+- Swagger UI (para probar)
 
 ### Estructura de carpetas
 En la raíz del repo:
