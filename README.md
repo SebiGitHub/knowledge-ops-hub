@@ -32,7 +32,7 @@ Cuando acumulas documentación (PDFs, guías, apuntes, specs), encontrar respues
 6) Verás `answer` + `sources[]` con páginas.
 7) (Opcional) Ejecuta WF2 o `POST /jobs/digest/save` para generar un `.md` en `./outbox/digests/`
 
-## Arquitectura (alto nivel)
+## Arquitectura
                 PDFs
                  |
                  v
