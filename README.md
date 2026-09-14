@@ -1,6 +1,6 @@
 # Local Knowledge Ops Hub (RAG + n8n + Spring Boot)
 
-Pipeline local 100% gratuito para convertir PDFs en una “base de conocimiento” consultable con RAG (respuestas con citas) y automatizar la ingesta/digest con n8n.
+Pipeline local para convertir PDFs en una “base de conocimiento” consultable con RAG (respuestas con citas) y automatizar la ingesta/digest con n8n.
 
 ## Problema que resuelve
 Cuando acumulas documentación (PDFs, guías, apuntes, specs), encontrar respuestas rápidas y fiables es lento. Este proyecto crea un flujo local donde:
@@ -18,7 +18,7 @@ Cuando acumulas documentación (PDFs, guías, apuntes, specs), encontrar respues
   - WF2: genera digest diario y lo guarda en `outbox/digests/`
 - Todo en local, sin APIs de pago
 
-## Demo rápida (2 minutos)
+## Demo por API
 1) Levanta el stack (Docker Desktop):
    - Postgres + pgvector
    - n8n
@@ -125,13 +125,14 @@ Estas variables ya tienen defaults, pero puedes sobreescribirlas:
 
 ## Guardrails (anti-alucinación)
 - Si no hay chunks relevantes, el sistema responde exactamente: `No encuentro evidencia en tus documentos.`
-- Se devuelven siempre `sources[]` con páginas/snippets para trazabilidad.
+- Se devuelven `sources[]` con páginas/snippets cuando hay resultados. Sin evidencia, la lista está vacía. Las fuentes no garantizan que cada afirmación generada sea correcta.
 
 ## Tests
 Ejecutar:
 ```bash
 cd backend
-mvn test
+./mvnw verify
+```
 
 ## Postman
 
@@ -142,3 +143,33 @@ Flujo típico:
 2. Jobs — Run inbox (limit=1)
 3. RAG — Ask (with sources)
 4. (Opcional) Jobs — Save digest
+
+## Interfaz web local
+
+La interfaz de `backend/src/main/resources/static/` permite registro/inicio de sesión, subida de PDF, extracción, indexado y consulta con fuentes. El token se mantiene en memoria y se pierde al recargar. Las respuestas y fuentes se insertan como texto, sin ejecutar HTML generado.
+
+### Arranque
+
+El Compose existente arranca PostgreSQL y n8n; Ollama y Java se ejecutan en el host.
+
+1. Desde la raíz: `docker compose -f infra/docker-compose.yml up -d`.
+2. Instala e inicia Ollama. Descarga `ollama pull nomic-embed-text` y `ollama pull mistral`.
+3. Define `KOH_JWT_SECRET` con al menos 32 bytes aleatorios. Se ha retirado el secreto predeterminado: las instalaciones existentes deben cambiarlo e iniciar sesión de nuevo.
+4. Desde `backend/`: `./mvnw spring-boot:run` (Windows: `mvnw.cmd spring-boot:run`).
+5. Abre http://127.0.0.1:8080/ y crea una cuenta local. Usa PDF ficticios con texto seleccionable, de hasta 20 MB.
+
+PowerShell para generar el secreto:
+
+```powershell
+$kohBytes = New-Object byte[] 32
+$kohRng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$kohRng.GetBytes($kohBytes)
+$kohRng.Dispose()
+$env:KOH_JWT_SECRET = [Convert]::ToBase64String($kohBytes)
+```
+
+El backend escucha en loopback por defecto. No publiques este entorno en Internet: la ingesta por rutas y carpetas compartidas está diseñada para una demostración local. La contraseña del Compose es solo de desarrollo.
+
+### Validación
+
+`./mvnw verify` ejecuta las clases `*IT` mediante Failsafe y requiere PostgreSQL y el secreto. El test de ausencia de documentos usa dobles de Ollama y del repositorio. La nueva interfaz requiere comprobación en navegador y el flujo completo requiere un modelo instalado. La presencia de tests no implica que hayan pasado.

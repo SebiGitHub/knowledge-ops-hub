@@ -1,23 +1,23 @@
 package dev.sebi.knowledgeopshub;
-
+import dev.sebi.knowledgeopshub.rag.OllamaClient;
 import dev.sebi.knowledgeopshub.rag.RagService;
+import dev.sebi.knowledgeopshub.rag.RetrievalRepository;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-
+import java.util.List;
 import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.*;
-
-@SpringBootTest
+import static org.mockito.Mockito.*;
 class RagGuardrailIT {
-
-  @Test
-  void ask_without_indexed_docs_returns_no_evidence(RagService ragService) {
-    // ownerId random: no tiene docs/chunks
-    UUID ownerId = UUID.randomUUID();
-
-    var ans = ragService.ask(ownerId, "¿Qué dice el documento?");
-    assertEquals("No encuentro evidencia en tus documentos.", ans.answer());
-    assertTrue(ans.sources().isEmpty());
+  @Test void no_documents_returns_no_evidence_without_generation() {
+    OllamaClient ollama = mock(OllamaClient.class);
+    RetrievalRepository retrieval = mock(RetrievalRepository.class);
+    UUID owner = UUID.randomUUID();
+    float[] embedding = {0.1f, 0.2f};
+    when(ollama.embed("Pregunta")).thenReturn(embedding);
+    when(retrieval.searchTopK(owner, embedding, 6)).thenReturn(List.of());
+    var answer = new RagService(ollama, retrieval, 6, 0.45).ask(owner, "Pregunta");
+    assertEquals("No encuentro evidencia en tus documentos.", answer.answer());
+    assertTrue(answer.sources().isEmpty());
+    verify(ollama, never()).generate(anyString());
   }
 }

@@ -1,7 +1,12 @@
 server:
   port: 8080
+  address: ${KOH_BIND_ADDRESS:127.0.0.1}
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 21MB
   datasource:
     url: jdbc:postgresql://localhost:55432/koh
     username: koh
@@ -14,7 +19,7 @@ spring:
 
 app:
   jwt:
-    secret: ${KOH_JWT_SECRET:change-me-in-env}
+    secret: ${KOH_JWT_SECRET}
     issuer: "knowledge-ops-hub"
     accessTokenMinutes: 60
   storage:

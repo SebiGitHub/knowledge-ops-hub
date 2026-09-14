@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Knowledge Ops Hub · Consulta tus documentos</title><meta name="description" content="Consulta documentos PDF y revisa las fuentes de cada respuesta."><link rel="stylesheet" href="/ui.css"><script src="/ui.js" defer></script></head>
+<body><a class="skip" href="#main">Saltar al contenido</a><header><p class="eyebrow">KNOWLEDGE OPS HUB</p><h1>Tus documentos, con contexto.</h1><p>Sube un PDF, haz una pregunta y revisa las fuentes de la respuesta.</p></header>
+<main id="main" tabindex="-1">
+<section id="account" class="card"><h2>1. Accede a tu cuenta</h2><form id="auth-form"><label>Correo<input id="email" type="email" autocomplete="username" required maxlength="254"></label><label>Contraseña<input id="password" type="password" autocomplete="current-password" required minlength="8" maxlength="128"></label><div class="actions"><button value="login" type="submit">Iniciar sesión</button><button value="register" type="submit" class="secondary">Crear cuenta</button></div></form></section>
+<div id="workspace" hidden><div class="session"><p id="session-label"></p><button id="logout" type="button" class="secondary">Cerrar sesión</button></div>
+<section class="card"><h2>2. Añade un documento</h2><p>PDF con texto seleccionable, hasta 20 MB. El procesamiento puede tardar.</p><form id="upload-form"><label>Archivo PDF<input id="pdf" type="file" accept=".pdf,application/pdf" required></label><button type="submit">Subir y preparar PDF</button></form><p id="upload-status" role="status" aria-live="polite"></p></section>
+<section class="card"><h2>3. Consulta tus documentos</h2><form id="ask-form"><label>Tu pregunta<textarea id="question" rows="3" required maxlength="2000" placeholder="¿Qué pasos describe el documento?"></textarea></label><button type="submit">Consultar</button></form>
+<div id="result" hidden><h3>Respuesta</h3><p id="answer"></p><p class="muted">Comprueba las fuentes antes de utilizar la respuesta; el modelo puede equivocarse.</p><h3>Fuentes recuperadas</h3><ol id="sources"></ol></div></section></div>
+<p id="status" role="status" aria-live="polite"></p><p id="error" role="alert"></p>
+</main><footer>Demostración local · Java/Spring Boot · PostgreSQL · Ollama</footer></body></html>

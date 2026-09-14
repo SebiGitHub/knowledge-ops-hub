@@ -12,7 +12,7 @@
 	<artifactId>knowledge-ops-hub</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>knowledge-ops-hub</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Local document search with a web interface, JWT and retrieval-augmented generation</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -119,6 +119,11 @@
 
 	<build>
 		<plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions><execution><goals><goal>integration-test</goal><goal>verify</goal></goals></execution></executions>
+            </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
