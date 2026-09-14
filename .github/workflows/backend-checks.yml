@@ -1,0 +1,43 @@
+name: Backend verification
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: koh
+          POSTGRES_USER: koh
+          POSTGRES_PASSWORD: koh
+        ports:
+          - 55432:5432
+        options: >-
+          --health-cmd "pg_isready -U koh"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      KOH_JWT_SECRET: test-only-ci-signing-key-not-used-outside-ci-123456789
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Verify backend and integration tests
+        working-directory: backend
+        run: bash mvnw --batch-mode verify
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: |
+            backend/target/surefire-reports/
+            backend/target/failsafe-reports/
