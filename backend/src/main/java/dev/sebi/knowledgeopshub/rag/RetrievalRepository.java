@@ -49,6 +49,25 @@ public class RetrievalRepository {
     );
   }
 
+  public List<Hit> searchByText(UUID ownerId, float[] queryEmbedding, String question, int topK) {
+    String qv = toPgVectorLiteral(queryEmbedding);
+    return jdbc.query("""
+        SELECT c.id, c.document_id, c.page_start, c.page_end, c.content,
+               (c.embedding <=> ?::vector) AS distance
+        FROM chunks c
+        JOIN documents d ON d.id = c.document_id
+        WHERE d.owner_id = ?
+          AND to_tsvector('spanish', c.content) @@ websearch_to_tsquery('spanish', ?)
+        ORDER BY ts_rank_cd(to_tsvector('spanish', c.content), websearch_to_tsquery('spanish', ?)) DESC,
+                 c.embedding <=> ?::vector
+        LIMIT ?
+        """,
+        (rs, rowNum) -> new Hit(
+            UUID.fromString(rs.getString("id")), UUID.fromString(rs.getString("document_id")),
+            rs.getInt("page_start"), rs.getInt("page_end"), rs.getString("content"), rs.getDouble("distance")
+        ), qv, ownerId, question, question, qv, topK);
+  }
+
   private String toPgVectorLiteral(float[] v) {
     StringBuilder sb = new StringBuilder();
     sb.append('[');
@@ -60,3 +79,4 @@ public class RetrievalRepository {
     return sb.toString();
   }
 }
+
