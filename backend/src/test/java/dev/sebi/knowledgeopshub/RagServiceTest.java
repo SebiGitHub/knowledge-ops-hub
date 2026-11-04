@@ -46,4 +46,24 @@ class RagServiceTest {
     assertEquals("No encuentro evidencia en tus documentos.", answer.answer());
     assertTrue(answer.sources().isEmpty()); verify(ollama, never()).generate(anyString());
   }
+  @Test void groupsSamePageAndKeepsCitationsAligned() {
+    var ollama = mock(OllamaClient.class); var retrieval = mock(RetrievalRepository.class);
+    var owner = UUID.randomUUID(); var doc = UUID.randomUUID(); var other = UUID.randomUUID(); var vector = new float[]{1f, 0f};
+    var a = new RetrievalRepository.Hit(UUID.randomUUID(), doc, 4, 4, "primer fragmento", 0.1);
+    var b = new RetrievalRepository.Hit(UUID.randomUUID(), doc, 4, 4, "segundo fragmento", 0.2);
+    var c = new RetrievalRepository.Hit(UUID.randomUUID(), other, 7, 7, "tercer fragmento", 0.3);
+    var selected = List.of(doc, other);
+    when(ollama.embed("pregunta")).thenReturn(vector);
+    when(retrieval.searchTopK(owner, vector, 6, selected)).thenReturn(List.of(a, b, c));
+    when(retrieval.documentTitle(owner, doc)).thenReturn("ejemplo.pdf");
+    when(retrieval.documentTitle(owner, other)).thenReturn("otro.pdf");
+    when(ollama.generate(anyString())).thenReturn("Respuesta [1] y [2]");
+    var result = new RagService(ollama, retrieval, 6, 0.45).ask(owner, "pregunta", selected);
+    assertEquals(2, result.sources().size()); assertEquals("ejemplo.pdf", result.sources().get(0).title());
+    assertTrue(result.sources().get(0).snippet().contains("primer fragmento"));
+    assertTrue(result.sources().get(0).snippet().contains("segundo fragmento"));
+    verify(ollama).generate(argThat(p -> p.contains("[1]") && p.contains("[2]") && !p.contains("[3]")));
+    assertThrows(IllegalArgumentException.class, () -> new RagService(ollama, retrieval, 6, 0.45).ask(owner, "pregunta", List.of()));
+  }
 }
+

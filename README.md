@@ -1,13 +1,13 @@
 # Local Knowledge Ops Hub (RAG + n8n + Spring Boot)
 
-Pipeline local para convertir PDFs en una “base de conocimiento” consultable con RAG (respuestas con citas) y automatizar la ingesta/digest con n8n.
+Aplicación local para consultar PDF con fuentes. La interfaz web procesa los PDF y responde por sí sola; n8n es opcional y permite programar tareas separadas.
 
 ## Problema que resuelve
 Cuando acumulas documentación (PDFs, guías, apuntes, specs), encontrar respuestas rápidas y fiables es lento. Este proyecto crea un flujo local donde:
-- subes PDFs,
-- se indexan automáticamente,
+- seleccionas un PDF en la web y pulsas «Subir y preparar PDF»,
+- la aplicación extrae e indexa su texto,
 - haces preguntas y obtienes respuestas **con fuentes y páginas**,
-- y generas resúmenes/digests automáticos.
+- opcionalmente puedes configurar n8n para procesar archivos y generar resúmenes programados.
 
 ## Qué hace (features)
 - Ingesta de PDFs (texto seleccionable) → extracción por páginas (PDFBox)
@@ -17,6 +17,16 @@ Cuando acumulas documentación (PDFs, guías, apuntes, specs), encontrar respues
   - WF1: procesa PDFs desde `inbox/` cada minuto
   - WF2: genera digest diario y lo guarda en `outbox/digests/`
 - Todo en local, sin APIs de pago
+
+## Dos recorridos diferentes
+
+**Interfaz web:** inicia sesión, selecciona un archivo, pulsa «Subir y preparar PDF» y espera a que se confirme. En la consulta puedes elegir uno o varios documentos preparados. Este recorrido usa el backend, PostgreSQL y Ollama; no necesita n8n ni Postman.
+
+**Automatización opcional:** los archivos de `workflows/` son flujos exportados que deben importarse, configurarse y activarse en n8n. Arrancar el contenedor no implica que estén configurados ni ejecutándose. WF1 solicita al backend procesar PDF de `inbox/`, y WF2 solicita un resumen y lo guarda en `outbox/digests/`.
+
+Los flujos requieren credenciales de la aplicación y conexión con el backend. El backend escucha en `127.0.0.1` por defecto, mientras que los flujos usan `host.docker.internal`; según la configuración de Docker puede no ser accesible. Comprueba las ejecuciones de n8n y la conectividad antes de dar por activa la automatización. No publiques el backend en Internet.
+
+Las fuentes se agrupan por documento y página. La distancia semántica es una medida técnica de similitud, no un porcentaje de veracidad; la respuesta puede contener errores aun con fuentes.
 
 ## Demo por API
 1) Levanta el stack (Docker Desktop):
@@ -115,7 +125,8 @@ Estas variables ya tienen defaults, pero puedes sobreescribirlas:
 | `POST /auth/register` | Crea usuario y devuelve JWT | `{email,password}` | `{token}` |
 | `POST /auth/login` | Login y devuelve JWT | `{email,password}` | `{token}` |
 | `POST /jobs/inbox/run?limit=1` | Procesa 1 PDF de `inbox/` (ingest+extract+index+mueve) | Header `Authorization: Bearer <token>` | `{processed, files[], message}` |
-| `POST /ask` | RAG: responde usando chunks indexados | Header `Authorization` + `{question}` | `{answer, sources[]}` |
+| `GET /documents/ready` | Lista PDF preparados del usuario | Header `Authorization` | Documentos indexados |
+| `POST /ask` | RAG: responde usando chunks indexados | Header `Authorization` + `{question, documentIds}`; IDs opcionales | `{answer, sources[]}` |
 | `POST /jobs/digest/save` | Guarda markdown en `outbox/digests/` | Header `Authorization` + `{content}` | `{path}` |
 
 ## Automatizaciones (n8n)
@@ -127,7 +138,7 @@ Estas variables ya tienen defaults, pero puedes sobreescribirlas:
 
 Al actualizar el fragmentador, los documentos indexados con una versión anterior deben prepararse de nuevo. Vuelve a subir cada PDF en la interfaz y espera a ver «Documento preparado» antes de consultar. Los registros y fragmentos anteriores no se borran automáticamente; las instalaciones que los conserven pueden devolver duplicados hasta que se gestionen por separado.
 
-Cuando ningún fragmento supera el umbral semántico, se intenta una búsqueda por palabras en los documentos del usuario. La relevancia y fidelidad de la respuesta siguen requiriendo revisión.
+Cuando ningún fragmento supera el umbral semántico, se intenta una búsqueda por palabras en los documentos del usuario. La selección en la web restringe ambos tipos de búsqueda a los PDF elegidos. La relevancia y fidelidad de la respuesta siguen requiriendo revisión.
 
 ## Guardrails (anti-alucinación)
 - Si no hay chunks relevantes, el sistema responde exactamente: `No encuentro evidencia en tus documentos.`
@@ -179,3 +190,4 @@ El backend escucha en loopback por defecto. No publiques este entorno en Interne
 ### Validación
 
 `./mvnw verify` ejecuta las clases `*IT` mediante Failsafe y requiere PostgreSQL y el secreto. El test de ausencia de documentos usa dobles de Ollama y del repositorio. La nueva interfaz requiere comprobación en navegador y el flujo completo requiere un modelo instalado. La presencia de tests no implica que hayan pasado.
+

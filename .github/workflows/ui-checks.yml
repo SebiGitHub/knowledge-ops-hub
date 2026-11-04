@@ -2,6 +2,7 @@ name: UI browser checks
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 permissions:
   contents: read
@@ -24,3 +25,4 @@ jobs:
           path: |
             playwright-report/
             test-results/
+

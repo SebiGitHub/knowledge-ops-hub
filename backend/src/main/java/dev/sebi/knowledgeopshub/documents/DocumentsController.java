@@ -2,6 +2,7 @@ package dev.sebi.knowledgeopshub.documents;
 
 import dev.sebi.knowledgeopshub.auth.MeController.JwtPrincipal;
 import dev.sebi.knowledgeopshub.rag.IndexingService;
+import dev.sebi.knowledgeopshub.rag.RetrievalRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -18,15 +19,23 @@ public class DocumentsController {
 
   private final DocumentsService documentsService;
   private final IndexingService indexingService;
+  private final RetrievalRepository retrieval;
 
-  public DocumentsController(DocumentsService documentsService, IndexingService indexingService) {
+  public DocumentsController(DocumentsService documentsService, IndexingService indexingService, RetrievalRepository retrieval) {
     this.documentsService = documentsService;
     this.indexingService = indexingService;
+    this.retrieval = retrieval;
   }
 
   public record UploadResponse(UUID documentId, String title, String filename) {}
   public record ExtractResponse(UUID documentId, long pagesExtracted) {}
   public record IndexResponse(UUID documentId, int chunksCreated) {}
+
+  @GetMapping("/ready")
+  public java.util.List<RetrievalRepository.ReadyDocument> ready(Authentication auth) {
+    JwtPrincipal p = (JwtPrincipal) auth.getPrincipal();
+    return retrieval.readyDocuments(p.userId());
+  }
 
   @PostMapping(consumes = "multipart/form-data")
   @ResponseStatus(HttpStatus.CREATED)
@@ -62,3 +71,4 @@ public class DocumentsController {
     return new UploadResponse(doc.getId(), doc.getTitle(), doc.getFilename());
   }
 }
+

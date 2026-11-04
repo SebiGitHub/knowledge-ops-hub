@@ -15,13 +15,14 @@ public class AskController {
     this.ragService = ragService;
   }
 
-  public record AskRequest(@NotBlank String question) {}
+  public record AskRequest(@NotBlank String question, java.util.List<java.util.UUID> documentIds) {}
   public record AskResponse(String answer, java.util.List<RagService.Source> sources) {}
 
   @PostMapping("/ask")
   public AskResponse ask(Authentication auth, @RequestBody @Valid AskRequest req) {
     JwtPrincipal p = (JwtPrincipal) auth.getPrincipal();
-    var ans = ragService.ask(p.userId(), req.question());
+    var ans = ragService.ask(p.userId(), req.question(), req.documentIds());
     return new AskResponse(ans.answer(), ans.sources());
   }
 }
+
