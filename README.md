@@ -123,6 +123,12 @@ Estas variables ya tienen defaults, pero puedes sobreescribirlas:
 - Documentación de flujos: `workflows/README.md`
 - Evidencias (capturas): `docs/evidence/*`
 
+## Reindexar documentos ya preparados
+
+Al actualizar el fragmentador, los documentos indexados con una versión anterior deben prepararse de nuevo. Vuelve a subir cada PDF en la interfaz y espera a ver «Documento preparado» antes de consultar. Los registros y fragmentos anteriores no se borran automáticamente; las instalaciones que los conserven pueden devolver duplicados hasta que se gestionen por separado.
+
+Cuando ningún fragmento supera el umbral semántico, se intenta una búsqueda por palabras en los documentos del usuario. La relevancia y fidelidad de la respuesta siguen requiriendo revisión.
+
 ## Guardrails (anti-alucinación)
 - Si no hay chunks relevantes, el sistema responde exactamente: `No encuentro evidencia en tus documentos.`
 - Se devuelven `sources[]` con páginas/snippets cuando hay resultados. Sin evidencia, la lista está vacía. Las fuentes no garantizan que cada afirmación generada sea correcta.

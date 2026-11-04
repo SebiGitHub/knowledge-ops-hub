@@ -4,6 +4,7 @@ import dev.sebi.knowledgeopshub.documents.DocumentEntity;
 import dev.sebi.knowledgeopshub.documents.DocumentPageRepository;
 import dev.sebi.knowledgeopshub.documents.DocumentRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -28,6 +29,7 @@ public class IndexingService {
     this.chunksJdbcRepository = chunksJdbcRepository;
   }
 
+  @Transactional
   public int indexDocument(UUID ownerId, UUID documentId) {
     DocumentEntity doc = documentRepository.findById(documentId)
         .orElseThrow(() -> new IllegalArgumentException("Documento no encontrado"));
@@ -61,3 +63,4 @@ public class IndexingService {
     return chunks.size();
   }
 }
+

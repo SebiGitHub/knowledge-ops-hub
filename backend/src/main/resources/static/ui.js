@@ -44,7 +44,7 @@ byId("auth-form").addEventListener("submit", event => {
   });
 });
 byId("logout").addEventListener("click", () => { closeSession(); byId("status").textContent = "Sesión cerrada."; byId("email").focus(); });
-byId("pdf").addEventListener("change", () => { pendingDocument = null; byId("upload-status").textContent = ""; });
+byId("pdf").addEventListener("change", () => { pendingDocument = null; byId("upload-status").textContent = byId("pdf").files.length ? "Archivo seleccionado. Pulsa «Subir y preparar PDF» antes de consultar." : ""; });
 byId("upload-form").addEventListener("submit", event => {
   event.preventDefault();
   const file = byId("pdf").files[0];
@@ -84,3 +84,4 @@ byId("ask-form").addEventListener("submit", event => {
     byId("result").hidden = false;
   });
 });
+

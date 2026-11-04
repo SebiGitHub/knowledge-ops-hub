@@ -37,9 +37,16 @@ public class RagService {
     float[] qEmb = ollama.embed(q);
 
     // 2) retrieve
-    List<RetrievalRepository.Hit> hits = retrieval.searchTopK(ownerId, qEmb, topK);
+    List<RetrievalRepository.Hit> hits = retrieval.searchTopK(ownerId, qEmb, topK).stream()
+        .filter(hit -> Double.isFinite(hit.distance()) && hit.distance() <= maxDistance)
+        .toList();
+    // Si no hay resultados semánticos aceptables, buscar los términos explícitos.
+    if (hits.isEmpty()) {
+      String lexicalQuery = q.replaceAll("(?iu)\\bIA\\b", "inteligencia artificial");
+      hits = retrieval.searchByText(ownerId, qEmb, lexicalQuery, topK);
+    }
 
-    if (hits.isEmpty() || hits.get(0).distance() > maxDistance) {
+    if (hits.isEmpty()) {
       return new Answer("No encuentro evidencia en tus documentos.", List.of());
     }
 
@@ -97,3 +104,4 @@ FUENTES:
     return t.length() <= 260 ? t : t.substring(0, 260) + "...";
   }
 }
+
