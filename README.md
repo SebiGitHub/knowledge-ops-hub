@@ -90,13 +90,10 @@ Outputs:
 ## Instalación local
 
 ### Requisitos
-- Windows + Docker Desktop
-- Java 17+
-- Maven
-- Ollama (modelo local)
-- n8n (self-hosted)
-- Postman (o Swagger como alternativa)
-- Swagger UI (para probar)
+- Docker Desktop con PostgreSQL/pgvector
+- Java 17 o superior; el proyecto incluye Maven Wrapper (`mvnw`)
+- Ollama con los modelos locales indicados más abajo
+- Opcionales: n8n para automatizaciones y Postman o Swagger para probar la API
 
 ### Estructura de carpetas
 En la raíz del repo:
