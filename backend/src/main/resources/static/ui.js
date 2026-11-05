@@ -8,10 +8,10 @@ function closeSession() {
   byId("result").hidden = true; byId("answer").textContent = ""; byId("sources").replaceChildren();
   byId("upload-form").reset(); byId("ask-form").reset(); byId("upload-status").textContent = ""; byId("documents").replaceChildren();
 }
-async function request(path, options = {}) {
+async function request(path, options = {}, timeoutMs = 180000) {
   const headers = new Headers(options.headers || {});
   if (token) headers.set("Authorization", "Bearer " + token);
-  const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 180000);
+  const controller = new AbortController(), timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(path, {...options, headers, signal: controller.signal});
     const data = await response.json().catch(() => ({}));
@@ -33,13 +33,13 @@ async function refreshDocuments() {
     name.textContent = doc.title || doc.filename || "Documento"; label.append(input, name); list.append(label);
   }
 }
-async function perform(task) {
+async function perform(task, pendingMessage = "Procesando…") {
   if (processing) return;
-  processing = true; showError(""); byId("status").textContent = "Procesando…";
+  processing = true; showError(""); byId("status").textContent = pendingMessage;
   const controls = [...document.querySelectorAll("button, input, textarea")], disabled = controls.map(c => c.disabled);
   controls.forEach(c => c.disabled = true);
   try { await task(); byId("status").textContent = "Operación completada."; }
-  catch (error) { showError(error.name === "AbortError" ? "El proceso ha tardado demasiado. Comprueba el servidor antes de reintentar." : error.message); byId("status").textContent = ""; }
+  catch (error) { showError(error.name === "AbortError" ? "Se ha agotado el tiempo de espera. Comprueba la terminal del servidor y Ollama antes de reintentar; la operación anterior podría seguir en curso." : error.message); byId("status").textContent = ""; }
   finally { controls.forEach((c,i) => c.disabled = disabled[i]); processing = false; }
 }
 byId("auth-form").addEventListener("submit", event => {
@@ -87,7 +87,7 @@ byId("ask-form").addEventListener("submit", event => {
   if (!documentIds.length) { showError("Selecciona al menos un PDF preparado."); return; }
   perform(async () => {
     byId("result").hidden = true;
-    const data = await request("/ask", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question,documentIds})});
+    const data = await request("/ask", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question,documentIds})}, 900000);
     byId("answer").textContent = data.answer || "Sin respuesta."; byId("sources").replaceChildren();
     for (const source of (Array.isArray(data.sources) ? data.sources : [])) {
       const item = document.createElement("li");
@@ -99,7 +99,7 @@ byId("ask-form").addEventListener("submit", event => {
       byId("sources").append(item);
     }
     byId("result").hidden = false;
-  });
+  }, "Consultando documentos y generando respuesta… En equipos lentos puede tardar varios minutos.");
 });
 
 
