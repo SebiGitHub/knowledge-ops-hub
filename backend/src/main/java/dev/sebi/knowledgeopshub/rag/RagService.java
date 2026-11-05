@@ -24,7 +24,7 @@ public class RagService {
   public Answer ask(UUID ownerId, String question, List<UUID> documentIds) {
     String q = question == null ? "" : question.trim();
     if (q.isBlank()) throw new IllegalArgumentException("Pregunta vacía");
-    if (documentIds != null && (documentIds.isEmpty() || documentIds.size() > 100 || documentIds.contains(null))) throw new IllegalArgumentException("Selecciona entre 1 y 100 documentos");
+    if (documentIds != null && (documentIds.isEmpty() || documentIds.size() > 100 || documentIds.stream().anyMatch(id -> id == null))) throw new IllegalArgumentException("Selecciona entre 1 y 100 documentos");
     float[] embedding = ollama.embed(q);
     var raw = documentIds == null ? retrieval.searchTopK(ownerId, embedding, topK) : retrieval.searchTopK(ownerId, embedding, topK, documentIds);
     List<RetrievalRepository.Hit> hits = raw.stream().filter(h -> Double.isFinite(h.distance()) && h.distance() <= maxDistance).toList();
