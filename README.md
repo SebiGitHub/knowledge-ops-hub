@@ -188,3 +188,12 @@ El backend escucha en loopback por defecto. No publiques este entorno en Interne
 
 `./mvnw verify` ejecuta las clases `*IT` mediante Failsafe y requiere PostgreSQL y el secreto. El test de ausencia de documentos usa dobles de Ollama y del repositorio. La nueva interfaz requiere comprobación en navegador y el flujo completo requiere un modelo instalado. La presencia de tests no implica que hayan pasado.
 
+
+### Si una consulta tarda demasiado
+
+La web espera hasta 15 minutos para una consulta; otras operaciones mantienen un límite de 3 minutos. El aviso no identifica por sí solo dónde se ha detenido el proceso. En un equipo lento, cargar el modelo o generar la respuesta puede tardar más. Ampliar la espera no acelera Ollama ni garantiza que el equipo disponga de recursos suficientes. Antes de reintentar, revisa la terminal del backend: el trabajo anterior podría seguir en curso.
+
+- En otra terminal, ejecuta `ollama list` para comprobar que están instalados `mistral` y `nomic-embed-text`, y `ollama ps` mientras consultas para ver si hay modelos cargados.
+- Comprueba que Docker Desktop y PostgreSQL siguen arrancados y revisa los errores en la terminal donde ejecutaste el backend.
+- Si el equipo dispone de poca memoria, cierra aplicaciones pesadas y conecta el portátil a la corriente. Puedes probar `$env:KOH_TOPK="3"` en PowerShell **antes** de iniciar el backend para reducir el número máximo de fragmentos usados (el valor habitual es 6). Esto puede reducir el contexto disponible y empeorar algunas respuestas; revisa siempre las fuentes.
+- Si se cambia el modelo de generación con `KOH_CHAT_MODEL`, se usa el modelo indicado al iniciar el backend. Cambiar el modelo de embeddings requiere reindexar los documentos. La generación y la consulta web no dependen de n8n.

@@ -52,3 +52,27 @@ test("unauthorized response clears session",async({page})=>{
  await expect(page.locator("#error")).toContainText("sesión ha caducado");
  await expect(page.locator("#workspace")).toBeHidden();
 });
+
+test("una consulta lenta no se cancela a los tres minutos",async({page})=>{
+ await page.clock.install();
+ await page.route("**/documents/ready",r=>r.fulfill({json:[{id:"demo-1",title:"demo.pdf"}]}));
+ await page.route("**/auth/login",r=>r.fulfill({json:{token:"synthetic-test-token"}}));
+ let release; const pending=new Promise(resolve=>{release=resolve});
+ let received; const requestReceived=new Promise(resolve=>{received=resolve});
+ await page.route("**/ask",async r=>{received();await pending;await r.fulfill({json:{answer:"Respuesta tardía",sources:[]}})});
+ await page.goto("/");
+ await page.locator("#email").fill("demo@example.com");
+ await page.locator("#password").fill("example-password");
+ await page.getByRole("button",{name:"Iniciar sesión"}).click();
+ await expect(page.locator("#workspace")).toBeVisible();
+ await page.locator("#question").fill("¿Qué dice?");
+ await page.getByRole("button",{name:"Consultar",exact:true}).click();
+ await requestReceived;
+ await expect(page.locator("#status")).toContainText("puede tardar varios minutos");
+ await page.clock.fastForward(181000);
+ await expect(page.locator("#error")).toBeEmpty();
+ await expect(page.getByRole("button",{name:"Consultar",exact:true})).toBeDisabled();
+ release();
+ await expect(page.locator("#answer")).toHaveText("Respuesta tardía");
+ await expect(page.getByRole("button",{name:"Consultar",exact:true})).toBeEnabled();
+});
