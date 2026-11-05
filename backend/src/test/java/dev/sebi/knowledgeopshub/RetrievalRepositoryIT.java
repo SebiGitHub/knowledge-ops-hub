@@ -24,6 +24,11 @@ class RetrievalRepositoryIT {
     var repository = new RetrievalRepository(jdbc);
     var hits = repository.searchByText(owner, new float[]{1f, 0f, 0f}, "¿Qué es la inteligencia artificial?", 6);
     assertEquals(1, hits.size()); assertEquals(doc, hits.get(0).documentId()); assertEquals(4, hits.get(0).pageStart());
+    assertTrue(repository.searchTopK(owner, new float[]{1f,0f,0f}, 6, java.util.List.of(otherDoc)).isEmpty());
+    assertEquals(1, repository.searchTopK(owner, new float[]{1f,0f,0f}, 6, java.util.List.of(doc)).size());
+    assertTrue(repository.searchByText(owner, new float[]{1f,0f,0f}, "inteligencia artificial", 6, java.util.List.of(otherDoc)).isEmpty());
+    assertTrue(repository.searchByText(owner, new float[]{1f,0f,0f}, "inteligencia artificial", 6, java.util.List.of()).isEmpty());
     assertTrue(repository.searchByText(owner, new float[]{1f, 0f, 0f}, "¿Cuál es el precio?", 6).isEmpty());
   }
 }
+

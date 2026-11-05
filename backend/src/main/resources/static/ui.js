@@ -6,7 +6,7 @@ function closeSession() {
   token = ""; pendingDocument = null;
   byId("workspace").hidden = true; byId("account").hidden = false;
   byId("result").hidden = true; byId("answer").textContent = ""; byId("sources").replaceChildren();
-  byId("upload-form").reset(); byId("ask-form").reset(); byId("upload-status").textContent = "";
+  byId("upload-form").reset(); byId("ask-form").reset(); byId("upload-status").textContent = ""; byId("documents").replaceChildren();
 }
 async function request(path, options = {}) {
   const headers = new Headers(options.headers || {});
@@ -22,6 +22,16 @@ async function request(path, options = {}) {
     }
     return data;
   } finally { clearTimeout(timer); }
+}
+async function refreshDocuments() {
+  const docs = await request("/documents/ready");
+  const list = byId("documents"); list.replaceChildren();
+  if (!Array.isArray(docs) || !docs.length) { list.textContent = "Todavía no hay PDF preparados."; return; }
+  for (const doc of docs) {
+    const label = document.createElement("label"), input = document.createElement("input"), name = document.createElement("span");
+    input.type = "checkbox"; input.value = doc.id; input.checked = true;
+    name.textContent = doc.title || doc.filename || "Documento"; label.append(input, name); list.append(label);
+  }
 }
 async function perform(task) {
   if (processing) return;
@@ -41,6 +51,7 @@ byId("auth-form").addEventListener("submit", event => {
     if (typeof data.token !== "string" || !data.token) throw new Error("Respuesta de autenticación no válida.");
     token = data.token; byId("password").value = "";
     byId("account").hidden = true; byId("workspace").hidden = false; byId("session-label").textContent = email;
+    await refreshDocuments();
   });
 });
 byId("logout").addEventListener("click", () => { closeSession(); byId("status").textContent = "Sesión cerrada."; byId("email").focus(); });
@@ -65,23 +76,30 @@ byId("upload-form").addEventListener("submit", event => {
     byId("upload-status").textContent = "Preparando búsqueda semántica…";
     const data = await request("/documents/" + encodeURIComponent(pendingDocument.id) + "/index", {method:"POST"});
     byId("upload-status").textContent = "Documento preparado: " + data.chunksCreated + " fragmentos.";
-    pendingDocument = null; byId("upload-form").reset();
+    pendingDocument = null; byId("upload-form").reset(); await refreshDocuments();
   });
 });
 byId("ask-form").addEventListener("submit", event => {
   event.preventDefault();
   const question = byId("question").value.trim();
   if (!question) { showError("Escribe una pregunta."); return; }
+  const documentIds = [...byId("documents").querySelectorAll("input:checked")].map(input => input.value);
+  if (!documentIds.length) { showError("Selecciona al menos un PDF preparado."); return; }
   perform(async () => {
     byId("result").hidden = true;
-    const data = await request("/ask", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question})});
+    const data = await request("/ask", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question,documentIds})});
     byId("answer").textContent = data.answer || "Sin respuesta."; byId("sources").replaceChildren();
-    for (const [index, source] of (Array.isArray(data.sources) ? data.sources : []).entries()) {
+    for (const source of (Array.isArray(data.sources) ? data.sources : [])) {
       const item = document.createElement("li");
-      item.textContent = "[" + (index + 1) + "] Documento " + source.documentId + " · páginas " + source.pageStart + "–" + source.pageEnd + "\n" + (source.snippet || "");
+      const title = document.createElement("strong");
+      const pages = source.pageStart === source.pageEnd ? "página " + source.pageStart : "páginas " + source.pageStart + "–" + source.pageEnd;
+      title.textContent = (source.title || "Documento") + " · " + pages;
+      const excerpt = document.createElement("span"); excerpt.textContent = source.snippet || "";
+      item.append(title, excerpt);
       byId("sources").append(item);
     }
     byId("result").hidden = false;
   });
 });
+
 
